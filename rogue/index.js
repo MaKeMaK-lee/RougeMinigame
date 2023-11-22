@@ -1,16 +1,16 @@
 /*
- * Комнаты могут быть расположены вплотную - решил я потому что так круче и потому что в картинке в тз есть такой пример
+ * РљРѕРјРЅР°С‚С‹ РјРѕРіСѓС‚ Р±С‹С‚СЊ СЂР°СЃРїРѕР»РѕР¶РµРЅС‹ РІРїР»РѕС‚РЅСѓСЋ - СЂРµС€РёР» СЏ РїРѕС‚РѕРјСѓ С‡С‚Рѕ С‚Р°Рє РєСЂСѓС‡Рµ Рё РїРѕС‚РѕРјСѓ С‡С‚Рѕ РІ РєР°СЂС‚РёРЅРєРµ РІ С‚Р· РµСЃС‚СЊ С‚Р°РєРѕР№ РїСЂРёРјРµСЂ
  *
- * Мне не очень хотелось добавлять каждой клетке хранение своих координат, но в итоге я таки решил сделать это в угоду скорости
+ * РњРЅРµ РЅРµ РѕС‡РµРЅСЊ С…РѕС‚РµР»РѕСЃСЊ РґРѕР±Р°РІР»СЏС‚СЊ РєР°Р¶РґРѕР№ РєР»РµС‚РєРµ С…СЂР°РЅРµРЅРёРµ СЃРІРѕРёС… РєРѕРѕСЂРґРёРЅР°С‚, РЅРѕ РІ РёС‚РѕРіРµ СЏ С‚Р°РєРё СЂРµС€РёР» СЃРґРµР»Р°С‚СЊ СЌС‚Рѕ РІ СѓРіРѕРґСѓ СЃРєРѕСЂРѕСЃС‚Рё
  *
- * Здесь относительно часто используется instanceof - потому что мне привычно ООП и интерфейсный C#)
- * ...но в целом я бы ещё сравнил что лучше - это, или доп. поля для определения характера сущности
+ * Р—РґРµСЃСЊ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ С‡Р°СЃС‚Рѕ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ instanceof - РїРѕС‚РѕРјСѓ С‡С‚Рѕ РјРЅРµ РїСЂРёРІС‹С‡РЅРѕ РћРћРџ Рё РёРЅС‚РµСЂС„РµР№СЃРЅС‹Р№ C#)
+ * ...РЅРѕ РІ С†РµР»РѕРј СЏ Р±С‹ РµС‰С‘ СЃСЂР°РІРЅРёР» С‡С‚Рѕ Р»СѓС‡С€Рµ - СЌС‚Рѕ, РёР»Рё РґРѕРї. РїРѕР»СЏ РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ С…Р°СЂР°РєС‚РµСЂР° СЃСѓС‰РЅРѕСЃС‚Рё
  *
  * */
 
 //#region Render
 
-//возможно лучше хранить координаты клеток и не пересчитывать их каждый раз
+//РІРѕР·РјРѕР¶РЅРѕ Р»СѓС‡С€Рµ С…СЂР°РЅРёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ РєР»РµС‚РѕРє Рё РЅРµ РїРµСЂРµСЃС‡РёС‚С‹РІР°С‚СЊ РёС… РєР°Р¶РґС‹Р№ СЂР°Р·
 /**
  * @param {GameState} gameState
  */
@@ -95,7 +95,7 @@ function render(gameState) {
 class Game {
   state;
   player;
-  //Settings - вынес бы я это, но пока смысла не вижу
+  //Settings - РІС‹РЅРµСЃ Р±С‹ СЏ СЌС‚Рѕ, РЅРѕ РїРѕРєР° СЃРјС‹СЃР»Р° РЅРµ РІРёР¶Сѓ
   playerMaxHp = 100;
   playerBaseDmg = 25;
   enemyMaxHp = 100;
@@ -182,8 +182,8 @@ class Game {
 
   //Todo fix ai may stay if face to face
   //Todo upd researchers aistages for explicit loop in tunnels with closed ends
-  //TODO сделать AI рандом того левши они или правши, для инверсии базовых поворотов
-  //Спешу, поэтому пока что ai просто действуют через эту функцию
+  //TODO СЃРґРµР»Р°С‚СЊ AI СЂР°РЅРґРѕРј С‚РѕРіРѕ Р»РµРІС€Рё РѕРЅРё РёР»Рё РїСЂР°РІС€Рё, РґР»СЏ РёРЅРІРµСЂСЃРёРё Р±Р°Р·РѕРІС‹С… РїРѕРІРѕСЂРѕС‚РѕРІ
+  //РЎРїРµС€Сѓ, РїРѕСЌС‚РѕРјСѓ РїРѕРєР° С‡С‚Рѕ ai РїСЂРѕСЃС‚Рѕ РґРµР№СЃС‚РІСѓСЋС‚ С‡РµСЂРµР· СЌС‚Сѓ С„СѓРЅРєС†РёСЋ
   aiTurn() {
     let aiEnemies = this.state.entities.filter(e => e instanceof Enemy1);
     for (let aE of aiEnemies) {
@@ -203,7 +203,7 @@ class Game {
         do {
           if (aE.lastPlayerSeekedDirection !== '') {
             if (!this.tryMove(aE.lastPlayerSeekedDirection, aE)) {
-              if (!this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.lastPlayerSeekedDirection))) {//Todo AI Стоят если их несколько подряд и первому некуда свернуть
+              if (!this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.lastPlayerSeekedDirection))) {//Todo AI РЎС‚РѕСЏС‚ РµСЃР»Рё РёС… РЅРµСЃРєРѕР»СЊРєРѕ РїРѕРґСЂСЏРґ Рё РїРµСЂРІРѕРјСѓ РЅРµРєСѓРґР° СЃРІРµСЂРЅСѓС‚СЊ
                 aE.resetHaunt();
               } else {
                 break;
@@ -266,7 +266,7 @@ class Game {
                     successMoved = true;
                   }
                 }
-                if (successMoved)//можно переместить к началу case 8, если нужно чтобы ai не могли при некоторых обстоятельствах кружить в 2на2 квадрате
+                if (successMoved)//РјРѕР¶РЅРѕ РїРµСЂРµРјРµСЃС‚РёС‚СЊ Рє РЅР°С‡Р°Р»Сѓ case 8, РµСЃР»Рё РЅСѓР¶РЅРѕ С‡С‚РѕР±С‹ ai РЅРµ РјРѕРіР»Рё РїСЂРё РЅРµРєРѕС‚РѕСЂС‹С… РѕР±СЃС‚РѕСЏС‚РµР»СЊСЃС‚РІР°С… РєСЂСѓР¶РёС‚СЊ РІ 2РЅР°2 РєРІР°РґСЂР°С‚Рµ
                 {
                   if (tryProckOfP(2)) {
                     aE.aiStage = getRandomInt(1, 4);
@@ -371,7 +371,7 @@ class Game {
       entity.pos.x = newPos.x;
       entity.pos.y = newPos.y;
 
-      if (entity instanceof Player)//вообще тут должна быть функция проверки может ли ent поднять предмет
+      if (entity instanceof Player)//РІРѕРѕР±С‰Рµ С‚СѓС‚ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С„СѓРЅРєС†РёСЏ РїСЂРѕРІРµСЂРєРё РјРѕР¶РµС‚ Р»Рё ent РїРѕРґРЅСЏС‚СЊ РїСЂРµРґРјРµС‚
       {
         this.applyEffectsOnTileAfterMove(entity);
       }
@@ -417,7 +417,7 @@ class Game {
   generateRandomStartEntities() {
     let emptyTiles = this.state.field.tiles.flat().filter(tile => tile.type === 0 && !this.state.isTileContainEntity(tile)).map(tile => tile.pos);
 
-    // одиночный спавн, его тоже вытащить можно было бы
+    // РѕРґРёРЅРѕС‡РЅС‹Р№ СЃРїР°РІРЅ, РµРіРѕ С‚РѕР¶Рµ РІС‹С‚Р°С‰РёС‚СЊ РјРѕР¶РЅРѕ Р±С‹Р»Рѕ Р±С‹
     let randomNumberOfEmptyTile = getRandomInt(1, emptyTiles.length);
     let newRandomEmptyPos = emptyTiles[randomNumberOfEmptyTile - 1];
     this.spawnPlayer(this.state.entities, newRandomEmptyPos, this.playerMaxHp, this.playerBaseDmg);
@@ -463,7 +463,7 @@ class Game {
 
 class GameState {
   field;
-  entities;//TODO Неплохо бы добавить отдельные списки (при этом не удаляя элементы из этого)
+  entities;//TODO РќРµРїР»РѕС…Рѕ Р±С‹ РґРѕР±Р°РІРёС‚СЊ РѕС‚РґРµР»СЊРЅС‹Рµ СЃРїРёСЃРєРё (РїСЂРё СЌС‚РѕРј РЅРµ СѓРґР°Р»СЏСЏ СЌР»РµРјРµРЅС‚С‹ РёР· СЌС‚РѕРіРѕ)
 
   //without params for new GameStage
   constructor() {
@@ -509,7 +509,7 @@ class GameState {
   }
 }
 
-//временно здесь, должны быть в опциях
+//РІСЂРµРјРµРЅРЅРѕ Р·РґРµСЃСЊ, РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РІ РѕРїС†РёСЏС…
 var fieldSizeX = 40;
 var fieldSizeY = 24;
 
@@ -863,7 +863,7 @@ class HealingPotion extends Potion {
 
   }
 
-  healingPotionPickUpByUnit(e) {//потенциально нужна проверка на тип е
+  healingPotionPickUpByUnit(e) {//РїРѕС‚РµРЅС†РёР°Р»СЊРЅРѕ РЅСѓР¶РЅР° РїСЂРѕРІРµСЂРєР° РЅР° С‚РёРї Рµ
     e.getHeal(this.healingHpCount);
     return true;
   }
@@ -878,7 +878,7 @@ class SwordBuff extends PickupableItem {
 
   }
 
-  swordBuffPickUpByUnit(e) {//потенциально нужна проверка на тип е
+  swordBuffPickUpByUnit(e) {//РїРѕС‚РµРЅС†РёР°Р»СЊРЅРѕ РЅСѓР¶РЅР° РїСЂРѕРІРµСЂРєР° РЅР° С‚РёРї Рµ
     e.dmg += this.damageBuff;
     return true;
   }
