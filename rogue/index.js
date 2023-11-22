@@ -1,18 +1,17 @@
 /*
  *  омнаты могут быть расположены вплотную - решил € потому что так круче и потому что в картинке в тз есть такой пример
  *
- *
- *
- * ≈сть места с дублированием строк, но если их две, то смысла замен€ть на цикл (то есть тоже две строки, только менее удобочитаемые) не вижу.
- *
  * ћне не очень хотелось добавл€ть каждой клетке хранение своих координат, но в итоге € таки решил сделать это в угоду скорости
- * «десь относительно часто используетс€ instanceof - потому что мне привычно ќќѕ, но в целом € бы ещЄ сравнил что лучше - это, или доп. пол€
+ *
+ * «десь относительно часто используетс€ instanceof - потому что мне привычно ќќѕ и интерфейсный C#)
+ * ...но в целом € бы ещЄ сравнил что лучше - это, или доп. пол€ дл€ определени€ характера сущности
+ *
  * */
 
-//#region Classes
+//#region Render
 
+//возможно лучше хранить координаты клеток и не пересчитывать их каждый раз
 /**
- *
  * @param {GameState} gameState
  */
 function render(gameState) {
@@ -20,22 +19,22 @@ function render(gameState) {
   renderField(gameState.field);
   renderEntities(gameState.entities);
 
-  function renderEntity(e){
+  function renderEntity(e) {
     let x = e.pos.x * 32;
     let y = (fieldSizeY - (e.pos.y + 1)) * 32;
 
     let tileClass;
-    switch (e.constructor.name){
-      case ("HealingPotion"):
+    switch (e.constructor.name) {
+      case ('HealingPotion'):
         tileClass = 'tileHP';
         break;
-      case ("Enemy1"):
+      case ('Enemy1'):
         tileClass = 'tileE';
         break;
-      case ("SwordBuff"):
+      case ('SwordBuff'):
         tileClass = 'tileSW';
         break;
-      case ("Player"):
+      case ('Player'):
         tileClass = 'tileP';
         break;
     }
@@ -46,9 +45,8 @@ function render(gameState) {
     });
 
     if (e instanceof Unit) {
-
       let hpBar = jQuery('<div/>', {
-        class: 'health' ,
+        class: 'health',
         style: 'width:' + e.getPercentOfHp() + '%;',
       });
       hpBar.appendTo(element);
@@ -64,7 +62,6 @@ function render(gameState) {
   }
 
   /**
-   *
    * @param {Field} field
    */
   function renderField(field) {
@@ -91,7 +88,9 @@ function render(gameState) {
   }
 }
 
+//#endregion
 
+//#region GameClasses
 
 class Game {
   state;
@@ -100,7 +99,7 @@ class Game {
   playerMaxHp = 100;
   playerBaseDmg = 25;
   enemyMaxHp = 100;
-  enemyBaseDmg = 5;
+  enemyBaseDmg = 9;
   potionMinHealingHpCount = 5;
   potionMaxHealingHpCount = 35;
   swordBuffMinDamageBuff = 15;
@@ -118,23 +117,13 @@ class Game {
   }
 
   init() {
-    //test();
-
     this.state = new GameState();
 
     this.generateRandomStartEntities();
 
-
-
-
-
-
     render(this.state);
 
-
-
-
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
       switch (event.code) {
         case 'KeyW':
           game.doTurn('PressW');
@@ -155,62 +144,57 @@ class Game {
           break;
       }
     });
-
   }
 
-  doTurn(action){
+  doTurn(action) {
     switch (action) {
-    case 'PressW':
-      if(!this.tryMove('u', this.player ))
+      case 'PressW':
+        if (!this.tryMove('u', this.player)) {
+          return;
+        }
+        break;
+      case 'PressS':
+        if (!this.tryMove('d', this.player)) {
+          return;
+        }
+        break;
+      case 'PressA':
+        if (!this.tryMove('l', this.player)) {
+          return;
+        }
+        break;
+      case 'PressD':
+        if (!this.tryMove('r', this.player)) {
+          return;
+        }
+        break;
+      case 'PressSpace':
+        this.areaAttack(this.player, this.player.pos, 1);
+        break;
+      default:
         return;
-      break;
-    case 'PressS':
-      if(!this.tryMove('d', this.player ))
-        return;
-      break;
-    case 'PressA':
-      if(!this.tryMove('l', this.player ))
-        return;
-      break;
-    case 'PressD':
-      if(!this.tryMove('r', this.player ))
-        return;
-      break;
-    case 'PressSpace':
-      this.areaAttack(this.player, this.player.pos,1);
-      break;
-    default:
-      return;
     }
 
-     this.aiTurn();
+    this.aiTurn();
 
-    //console.log('Units:');
-    //console.log(this.state.entities.filter(e => e instanceof Unit));
     render(this.state);
   }
 
+  //Todo fix ai may stay if face to face
   //Todo upd researchers aistages for explicit loop in tunnels with closed ends
   //TODO сделать AI рандом того левши они или правши, дл€ инверсии базовых поворотов
   //—пешу, поэтому пока что ai просто действуют через эту функцию
-  aiTurn(){
-    console.log('AI START TURNS');
-    let aiEnemies = this.state.entities.filter(e=> e instanceof Enemy1);
+  aiTurn() {
+    let aiEnemies = this.state.entities.filter(e => e instanceof Enemy1);
     for (let aE of aiEnemies) {
       this.aiEnemyTurn(aE);
     }
-
-
-
-
   }
 
-  aiEnemyTurn(aE){
-    console.log(aE);
+  aiEnemyTurn(aE) {
     //vision
     let newDir = this.aiTrySeekPlayer(aE);
     aE.lastPlayerSeekedDirection = newDir ?? aE.lastPlayerSeekedDirection;
-    console.log('AI VISION PASSED. Direction:' +   aE.lastPlayerSeekedDirection);
     //try attack
     if (!this.aiTryFindAndAttackNearbyPlayer(aE, 1)) {
       //move
@@ -218,14 +202,15 @@ class Game {
         let successMoved;
         do {
           if (aE.lastPlayerSeekedDirection !== '') {
-            if (!this.tryMove(aE.lastPlayerSeekedDirection, aE)){
-              if(!this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos),aE.lastPlayerSeekedDirection))) {//Todo AI —то€т если их несколько подр€д и первому некуда свернуть
+            if (!this.tryMove(aE.lastPlayerSeekedDirection, aE)) {
+              if (!this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.lastPlayerSeekedDirection))) {//Todo AI —то€т если их несколько подр€д и первому некуда свернуть
                 aE.resetHaunt();
-              }else
+              } else {
                 break;
-            }
-            else
+              }
+            } else {
               break;
+            }
           } else {
             switch (aE.aiStage) {
               case 1:
@@ -235,7 +220,7 @@ class Game {
                 if (!successMoved) {
                   aE.wantMoveDirection = getTurnLeftDirection(aE.wantMoveDirection);
                   aE.aiStage++;
-                  if(this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos),aE.wantMoveDirection))) {
+                  if (this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.wantMoveDirection))) {
                     successMoved = true;
                   }
                 }
@@ -245,9 +230,9 @@ class Game {
                   let dimsFilter = [aE.lastMovedDirection];
                   aE.wantMoveDirection = getAnotherRandomDirection(dimsFilter);
                   successMoved = this.tryMove(aE.wantMoveDirection, aE);
-                  if (!successMoved){
+                  if (!successMoved) {
                     dimsFilter.push(aE.wantMoveDirection);
-                    if(this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos),aE.wantMoveDirection))) {
+                    if (this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.wantMoveDirection))) {
                       successMoved = true;
                     }
                   }
@@ -263,41 +248,42 @@ class Game {
                 if (!successMoved) {
                   aE.wantMoveDirection = getTurnRightDirection(aE.wantMoveDirection);
                   aE.aiStage++;
-                  if(this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos),aE.wantMoveDirection))){
-                    successMoved=true;
+                  if (this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.wantMoveDirection))) {
+                    successMoved = true;
                   }
                 }
                 break;
               case 8:
                 let onTurnLeftPos = {x: aE.pos.x, y: aE.pos.y};
                 movePositionOnDirection(onTurnLeftPos, getTurnLeftDirection(aE.wantMoveDirection));
-                if (this.isTileExistsAndAvailableToMove(onTurnLeftPos))
+                if (this.isTileExistsAndAvailableToMove(onTurnLeftPos)) {
                   aE.wantMoveDirection = getTurnLeftDirection(aE.wantMoveDirection);
-
+                }
                 successMoved = this.tryMove(aE.wantMoveDirection, aE);
                 if (!successMoved) {
                   aE.wantMoveDirection = getTurnRightDirection(aE.wantMoveDirection);
-                  if(this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos),aE.wantMoveDirection))) {
+                  if (this.isAiEnemyOnPosition(movePositionOnDirection(getClonePosition(aE.pos), aE.wantMoveDirection))) {
                     successMoved = true;
                   }
                 }
-                if (successMoved)
-                  if (tryProckOfP(2))
+                if (successMoved)//можно переместить к началу case 8, если нужно чтобы ai не могли при некоторых обсто€тельствах кружить в 2на2 квадрате
+                {
+                  if (tryProckOfP(2)) {
                     aE.aiStage = getRandomInt(1, 4);
+                  }
+                }
                 break;
               default:
                 break;
-
             }
           }
         } while (!successMoved);
       } else if (aE.aiType === 'researcher') {
-
         let dimsFilter = [aE.lastMovedDirection];
         while (!this.tryMove(aE.wantMoveDirection, aE)) {
           dimsFilter.push(aE.wantMoveDirection);
           aE.wantMoveDirection = getAnotherRandomDirection(dimsFilter);
-          if(dimsFilter.length>3) {
+          if (dimsFilter.length > 3) {
             break;
           }
         }
@@ -306,315 +292,173 @@ class Game {
       }
       let newDir = this.aiTrySeekPlayer(aE);
       aE.lastPlayerSeekedDirection = newDir ?? aE.lastPlayerSeekedDirection;
-      console.log('AI MOVE PASSED');
     }
-    return;
+    //return;
   }
 
-  isAiEnemyOnPosition(pos){
-  for (let e of this.state.entities.filter(e=>e instanceof AiEnemyUnit)) {
-    if (isPositionEquals(pos, e.pos))
+  isAiEnemyOnPosition(pos) {
+    for (let e of this.state.entities.filter(e => e instanceof AiEnemyUnit)) {
+      if (isPositionEquals(pos, e.pos)) {
+        return true;
+      }
+    }
+  }
+
+  getRectangleFromCenterAndRadiusSafeToArgs(center, radius) {
+    return {
+      start: {x: center.x - radius, y: center.y - radius},
+      size: {x: radius * 2 + 1, y: radius * 2 + 1},
+    };
+  }
+
+  aiTryFindAndAttackNearbyPlayer(ai, attackRange) {
+    let area = this.getRectangleFromCenterAndRadiusSafeToArgs(ai.pos, attackRange);
+    if (isRectangleContainsPosition(area, this.player.pos)) {
+      this.attack(ai, this.player);
       return true;
-  }
-}
-
-
-  getRectangleFromCenterAndRadiusSafeToArgs(center,radius){
-    return {start:{x:center.x-radius,y:center.y-radius},
-      size:{x:radius*2+1,y:radius*2+1}};
-  }
-
-
-  aiTryFindAndAttackNearbyPlayer(ai, attackRange){
-    console.log('AI TRY ATTACK');
-      let area = this.getRectangleFromCenterAndRadiusSafeToArgs(ai.pos,attackRange);
-        if (isRectangleContainsPosition(area, this.player.pos)){
-          this.attack(ai, this.player);
-          return true;
-        }
-        return false;
     }
+    return false;
+  }
 
   aiTrySeekPlayer(ai) {
-    for (let dir of ['u','d','l','r']) {
-      if (this.aiTrySeekPlayerOnDirection(ai, dir))
+    for (let dir of ['u', 'd', 'l', 'r']) {
+      if (this.aiTrySeekPlayerOnDirection(ai, dir)) {
         return dir;
+      }
     }
     return undefined;
   }
 
-
-  aiTrySeekPlayerOnDirection(ai, dir){
-    console.log('_____====___=__=________');
+  aiTrySeekPlayerOnDirection(ai, dir) {
     let pointToSeek = getClonePosition(ai.pos);
     do {
-        movePositionOnDirection(pointToSeek, dir);
-        if (this.isTileExistsAndAvailableToLook(pointToSeek)){
-          if (isPositionEquals(pointToSeek,this.player.pos)){
-            console.log('%%%%%%%%%%%%%%%%%%%%$$$$$$$$$$$)))))))))))))))))))))))))))))))))');
-            return true;}
-        } else {
-          console.log('@@@@@@@@@@@@@@@@@@@@');
-          return false;
+      movePositionOnDirection(pointToSeek, dir);
+      if (this.isTileExistsAndAvailableToLook(pointToSeek)) {
+        if (isPositionEquals(pointToSeek, this.player.pos)) {
+          return true;
         }
-      } while (true)
+      } else {
+        return false;
+      }
+    } while (true);
   }
 
-
-  attack(attacker, target){
+  attack(attacker, target) {
     this.damageEntity(target, attacker.dmg);
   }
 
-
-  damageEntity(target, value){
+  damageEntity(target, value) {
     target.getDamage(value);
-    if (target.hp === 0)
+    if (target.hp === 0) {
       this.state.removeFromEntities(target);
+    }
   }
 
-
-
-  areaAttack(attacker, center, radius){
-    let area = this.getRectangleFromCenterAndRadiusSafeToArgs(center,radius);
-    for (let target of this.state.entities.filter(e=>e instanceof Unit && e !== attacker)) {
-      if (isRectangleContainsPosition(area, target.pos))
+  areaAttack(attacker, center, radius) {
+    let area = this.getRectangleFromCenterAndRadiusSafeToArgs(center, radius);
+    for (let target of this.state.entities.filter(e => e instanceof Unit && e !== attacker)) {
+      if (isRectangleContainsPosition(area, target.pos)) {
         this.attack(attacker, target);
+      }
     }
     return true;
   }
 
-  tryMove(direction, entity){
+  tryMove(direction, entity) {
     let newPos = {x: entity.pos.x, y: entity.pos.y};
-    movePositionOnDirection(newPos,direction);
-    if (this.isTileExistsAndAvailableToMove(newPos))
-    {
+    movePositionOnDirection(newPos, direction);
+    if (this.isTileExistsAndAvailableToMove(newPos)) {
       entity.pos.x = newPos.x;
       entity.pos.y = newPos.y;
 
       if (entity instanceof Player)//вообще тут должна быть функци€ проверки может ли ent подн€ть предмет
+      {
         this.applyEffectsOnTileAfterMove(entity);
-
-      if (entity instanceof AiEnemyUnit){
+      }
+      if (entity instanceof AiEnemyUnit) {
         entity.lastMovedDirection = direction;
       }
-
       return true;
     }
     return false;
   }
 
   applyEffectsOnTileAfterMove(entity) {
-    let effectEntities = this.state.entities.filter(e=>isPositionEquals(e.pos,entity.pos) && e instanceof PickupableItem);
+    let effectEntities = this.state.entities.filter(e => isPositionEquals(e.pos, entity.pos) && e instanceof PickupableItem);
     for (let eE of effectEntities) {
-      if (eE.pickUpByUnit(entity))
+      if (eE.pickUpByUnit(entity)) {
         this.state.removeFromEntities(eE);
+      }
     }
-
   }
 
-  isTileExistsAndAvailableToMove(pos){
-    if (this.state.field.isFieldContainsPosition(pos))
-      if (this.state.field.tiles[pos.y][pos.x].type === 0){
-        if (this.state.entities.filter(e=>e instanceof Unit).filter(e=>isPositionEquals(e.pos,pos)).length===0){
+  isTileExistsAndAvailableToMove(pos) {
+    if (this.state.field.isFieldContainsPosition(pos)) {
+      if (this.state.field.tiles[pos.y][pos.x].type === 0) {
+        if (this.state.entities.filter(e => e instanceof Unit).filter(e => isPositionEquals(e.pos, pos)).length === 0) {
           return true;
         }
       }
+    }
     return false;
   }
+
   //Todo similar funcs can out "exists" part
-  isTileExistsAndAvailableToLook(pos){
-    if (this.state.field.isFieldContainsPosition(pos))
-      if (this.state.field.tiles[pos.y][pos.x].type === 0)
-          return true;
+  isTileExistsAndAvailableToLook(pos) {
+    if (this.state.field.isFieldContainsPosition(pos)) {
+      if (this.state.field.tiles[pos.y][pos.x].type === 0) {
+        return true;
+      }
+    }
 
     return false;
   }
 
   generateRandomStartEntities() {
-
     let emptyTiles = this.state.field.tiles.flat().filter(tile => tile.type === 0 && !this.state.isTileContainEntity(tile)).map(tile => tile.pos);
 
-    console.log(emptyTiles.length);
-    // одиночный спавн тоже вытащить можно было бы
+    // одиночный спавн, его тоже вытащить можно было бы
     let randomNumberOfEmptyTile = getRandomInt(1, emptyTiles.length);
-    let newRandomEmptyPos  =  emptyTiles[randomNumberOfEmptyTile-1];
-    this.spawnPlayer(this.state.entities, newRandomEmptyPos , this.playerMaxHp, this.playerBaseDmg);
-    emptyTiles.splice(randomNumberOfEmptyTile-1,1);
+    let newRandomEmptyPos = emptyTiles[randomNumberOfEmptyTile - 1];
+    this.spawnPlayer(this.state.entities, newRandomEmptyPos, this.playerMaxHp, this.playerBaseDmg);
+    emptyTiles.splice(randomNumberOfEmptyTile - 1, 1);
 
-    this.spawnBaseManyOnEmptyTiles(this.state.entities,emptyTiles, this.countSwordsBuffMax, this.spawnSwordBuff,
-      [getRandomInt(this.swordBuffMinDamageBuff, this.swordBuffMaxDamageBuff)]);
-    this.spawnBaseManyOnEmptyTiles(this.state.entities,emptyTiles, this.countHealingPotionMax, this.spawnHealingPotion,
-      [getRandomInt(this.potionMinHealingHpCount, this.potionMaxHealingHpCount)]);
-    this.spawnBaseManyOnEmptyTiles(this.state.entities,emptyTiles, this.countEnemy1Max, this.spawnEnemy1,
-      [this.enemyMaxHp, this.enemyBaseDmg]);
-    console.log(emptyTiles.length);
+    this.spawnBaseManyOnEmptyTiles(this.state.entities, emptyTiles, this.countSwordsBuffMax, this.spawnSwordBuff,
+      [getRandomInt(this.swordBuffMinDamageBuff, this.swordBuffMaxDamageBuff)],
+    );
+    this.spawnBaseManyOnEmptyTiles(this.state.entities, emptyTiles, this.countHealingPotionMax, this.spawnHealingPotion,
+      [getRandomInt(this.potionMinHealingHpCount, this.potionMaxHealingHpCount)],
+    );
+    this.spawnBaseManyOnEmptyTiles(this.state.entities, emptyTiles, this.countEnemy1Max, this.spawnEnemy1,
+      [this.enemyMaxHp, this.enemyBaseDmg],
+    );
   }
 
-  spawnBaseManyOnEmptyTiles(eCollection, emptyTiles, spawnCount, spawnFunction, spawnFunctionArgsExcludingPosition){
-    if (emptyTiles.length === 0)
+  spawnBaseManyOnEmptyTiles(eCollection, emptyTiles, spawnCount, spawnFunction, spawnFunctionArgsExcludingPosition) {
+    if (emptyTiles.length === 0) {
       return;
-    while (spawnCount>0){
+    }
+    while (spawnCount > 0) {
       let randomNumberOfEmptyTile = getRandomInt(1, emptyTiles.length);
-      let newRandomEmptyPosition =  emptyTiles[randomNumberOfEmptyTile-1] ;
-      console.log(newRandomEmptyPosition);
+      let newRandomEmptyPosition = emptyTiles[randomNumberOfEmptyTile - 1];
       spawnFunction(eCollection, newRandomEmptyPosition, ...spawnFunctionArgsExcludingPosition);
-      emptyTiles.splice(randomNumberOfEmptyTile-1,1);
+      emptyTiles.splice(randomNumberOfEmptyTile - 1, 1);
 
       spawnCount--;
     }
   }
 
-
-  spawnPlayer(eCollection,pos,hp,dmg){
-    let p = new Player({x:pos.x,y:pos.y},hp,dmg);
+  spawnPlayer(eCollection, pos, hp, dmg) {
+    let p = new Player({x: pos.x, y: pos.y}, hp, dmg);
     eCollection.push(p);
     this.player = p;
   }
 
-  spawnEnemy1(eCollection,pos,hp,dmg){eCollection.push(new Enemy1({x:pos.x,y:pos.y},hp,dmg));}
-  spawnHealingPotion(eCollection,pos,c){eCollection.push(new HealingPotion({x:pos.x,y:pos.y},c));}
-  spawnSwordBuff(eCollection,pos,c){eCollection.push(new SwordBuff({x:pos.x,y:pos.y}, c));}
+  spawnEnemy1(eCollection, pos, hp, dmg) {eCollection.push(new Enemy1({x: pos.x, y: pos.y}, hp, dmg));}
 
-}
+  spawnHealingPotion(eCollection, pos, c) {eCollection.push(new HealingPotion({x: pos.x, y: pos.y}, c));}
 
-function test() {
-}
-class Entity{
-  pos;
-  constructor(pos){
-    this.pos=pos;
-  }
-}
-
-class PickupableItem extends Entity{
-  constructor(pos){
-    super(pos);
-  }
-  pickUpByUnit(unit){
-    if (this instanceof Potion){
-      return this.potionPickUpByUnit(unit);
-    }
-    else if (this instanceof SwordBuff){
-      return this.swordBuffPickUpByUnit(unit);
-    }
-  }
-}
-
-class Potion extends PickupableItem{
-  constructor(pos){
-    super(pos);
-  }
-  potionPickUpByUnit(e){
-    if (this instanceof HealingPotion){
-      return this.healingPotionPickUpByUnit(e);
-    }
-  }
-
-}
-class HealingPotion extends Potion{
-  healingHpCount;
-  constructor(pos, healingHpCount) {
-    super(pos);
-    this.healingHpCount = healingHpCount;
-
-  }
-  healingPotionPickUpByUnit(e){
-    e.hp+=this.healingHpCount;
-    return true;
-  }
-}
-
-
-
-class SwordBuff extends PickupableItem{
-  damageBuff;
-  constructor(pos, damageBuff){
-    super(pos);
-    this.damageBuff = damageBuff;
-
-  }
-  swordBuffPickUpByUnit(e){
-    e.dmg+=this.damageBuff;
-    return true;
-  }
-}
-
-
-
-class Unit extends Entity{
-  maxHp;
-  #hp;
-  set hp(value){
-    this.#hp = setNumberToBorders(value, 0, this.maxHp);
-  }
-  get hp(){
-    return this.#hp;
-  }
-  getDamage(hpLoss){
-    this.hp = this.hp - hpLoss;
-  }
-  getHeal(hpAdd){
-    this.hp = this.hp + hpAdd;
-  }
-  constructor(pos, maxHp) {
-    super(pos);
-    this.maxHp = maxHp;
-    this.hp = maxHp;
-
-  }
-  getPercentOfHp(){
-    return (this.hp/this.maxHp)*100;
-  }
-}
-
-class CombatUnit extends Unit{
-  dmg;
-  constructor(pos, maxHp, dmg) {
-    super(pos, maxHp);
-    this.dmg = dmg;
-  }
-}
-class Player extends CombatUnit{
-
-  constructor(pos, maxHp, dmg) {
-    super(pos, maxHp, dmg);
-
-  }
-}
-
-
-
-class AiEnemyUnit extends CombatUnit{
-  lastPlayerSeekedDirection;
-  lastMovedDirection;
-  wantMoveDirection;
-  aiType;
-  aiStage;
-  constructor(pos, maxHp, dmg) {
-    super(pos, maxHp, dmg);
-    this.lastPlayerSeekedDirection = '';
-    this.lastMovedDirection = '';
-    this.wantMoveDirection = getRandomDirection();
-    if (tryProckOfP(15))
-      this.aiType = 'researcher';
-    else
-      this.aiType = 'hunter';
-    this.aiStage = 1;
-
-
-  }
-  resetHaunt(){
-    this.aiStage = 1;
-    this.lastPlayerSeekedDirection = '';
-  }
-
-}
-class Enemy1 extends AiEnemyUnit{
-
-  constructor(pos, maxHp, dmg) {
-    super(pos, maxHp, dmg);
-
-  }
+  spawnSwordBuff(eCollection, pos, c) {eCollection.push(new SwordBuff({x: pos.x, y: pos.y}, c));}
 }
 
 class GameState {
@@ -630,7 +474,7 @@ class GameState {
   removeFromEntities(e) {
     this.entities.splice(this.entities.findIndex(a => a === e), 1);
     if (e instanceof Unit) {
-      if (this.entities.filter(e => e instanceof Enemy1).length === 0)
+      if (this.entities.filter(e => e instanceof Enemy1).length === 0) {
         alert(
           '   !!!___VICTORY!___!!!\n' +
           'Your stats:\n' +
@@ -638,7 +482,8 @@ class GameState {
           'DMG: ' + game.player.dmg + '\n' +
           '\n' +
           '   Thanks for playing!');
-      if (e instanceof Player)
+      }
+      if (e instanceof Player) {
         alert(
           '   -GAME OVER-\n' +
           'Your stats:\n' +
@@ -646,13 +491,15 @@ class GameState {
           'DMG: ' + game.player.dmg + '\n' +
           '\n' +
           'You has been defeat, but dont despair! Just try again!');
+      }
     }
   }
 
   isTileContainEntity(tile) {
     for (let entity of this.entities) {
-      if (isPositionEquals(tile.pos, entity.pos))
+      if (isPositionEquals(tile.pos, entity.pos)) {
         return true;
+      }
     }
     return false;
   }
@@ -662,8 +509,10 @@ class GameState {
   }
 }
 
+//временно здесь, должны быть в опци€х
 var fieldSizeX = 40;
 var fieldSizeY = 24;
+
 class Field {
   tiles;
   //Warning when modifying: if you change the minimum number or size of the field, the results of generation may contain halls count less than the minimum.
@@ -682,13 +531,11 @@ class Field {
 
   constructor() {
     this.generateNewRandomField();
-
-     //console.log(this.tiles);
   }
 
   generateNewRandomField() {
     do {
-       try {
+      try {
         this.initTiles();
         this.initHalls();
         this.initTunnels();
@@ -702,22 +549,19 @@ class Field {
         this.generateTunnels(mass);
         for (let i = 0; i < this.tiles.length; i++) {
           for (let j = 0; j < this.tiles[0].length; j++) {
-            this.tiles[i][j] = new Tile(mass[i][j],{x:j,y:i});
+            this.tiles[i][j] = new Tile(mass[i][j], {x: j, y: i});
           }
         }
-
-
         return;
-       } catch (ex) {
-         alert('mine failed :)');
-       }
+      } catch (ex) {
+
+      }
     } while (true);
   }
 
   generateTunnels(mass) {
     let balanceTunnelCountV = getRandomInt(this.minTunnelsCountOnDirection, this.maxTunnelsCountOnDirection);
     let balanceTunnelCountH = getRandomInt(this.minTunnelsCountOnDirection, this.maxTunnelsCountOnDirection);
-    console.log('BALANCETUNNELS----------------------------------- V:' + balanceTunnelCountV + ' H:' + balanceTunnelCountH);
     let orient, cord;
     for (let hall of this.halls) {
       if (!hall.connectedWithTunnels) {
@@ -729,9 +573,6 @@ class Field {
           getRandomInt(hall.start.x, endOfRectangle(hall, false))
           :
           getRandomInt(hall.start.y, endOfRectangle(hall, true));
-        console.log('TUNNEL RANDOMIED--------------------------------------------:');
-        console.log('ORIENT: ' + orient + ' CORD: ' + cord);
-        console.log('BALANCE: V:' + balanceTunnelCountV + ' H:' + balanceTunnelCountH);
         this.generateTunnel(mass, cord, orient);
         if (orient === 'v') {
           balanceTunnelCountV--;
@@ -763,26 +604,18 @@ class Field {
         balanceTunnelCountH--;
       }
     }
-    console.log(mass);
-    console.log(this.halls);
   }
 
   generateTunnel(mass, cord, orient) {
     let newTunnel = {orient: orient, cord: cord};
     let mine = (rectangle, currentTileY, currentTileX) => {
-      console.log(mass);
       rectangle[currentTileY][currentTileX] = 0;
     };
     let tunnelRectangle = this.getRectangleOfTunnel(mass, newTunnel);
     doWithSubRectanglePrimitive(mass, tunnelRectangle.start.x, tunnelRectangle.start.y, tunnelRectangle.size.x, tunnelRectangle.size.y, mine);
 
     this.tunnels.push(newTunnel);
-
-    console.log('HALLS BEFORE ITERATION REFRESH STATUSES---------------');
-    console.log(this.halls.map(x => x.connectedWithTunnels));
     this.refreshHallsStatusesOnTunnel(mass, newTunnel);
-    console.log('HALLS AFTER ITERATION REFRESH STATUSES---------------');
-    console.log(this.halls.map(x => x.connectedWithTunnels));
   }
 
   getRectangleOfTunnel(mass, tunnel) {
@@ -804,15 +637,14 @@ class Field {
     }
     cutRectangleToTargetRectangle(wideTunnel, mass);
 
-    console.log('WiDeTuNnEl');
-    let asd = {...wideTunnel};
-    console.log(asd);
-    this.doWithSubRectanglePrimitive(
-      mass, wideTunnel.startX, wideTunnel.startY, wideTunnel.sizeX, wideTunnel.sizeY, this.trySetChainConnectedWithTunnelsOnPosition, this);
+    doWithSubRectanglePrimitive(
+      mass, wideTunnel.startX, wideTunnel.startY, wideTunnel.sizeX, wideTunnel.sizeY,
+      this.trySetChainConnectedWithTunnelsOnPosition, this,
+    );
   }
 
-  isFieldContainsPosition(pos){
-    return isRectangleContainsPosition({start:{x:0,y:0},size:{x:this.tiles[0].length,y:this.tiles.length}}, pos);
+  isFieldContainsPosition(pos) {
+    return isRectangleContainsPosition({start: {x: 0, y: 0}, size: {x: this.tiles[0].length, y: this.tiles.length}}, pos);
   }
 
   trySetChainConnectedWithTunnelsOnPosition(mass, y, x, calledByObject = this) {
@@ -836,8 +668,6 @@ class Field {
   }
 
   tryDoWithWallsPrimitive(mass, rect, doThat, calledByObject) {
-    console.log('IS HALL UNREACHABLE');
-    console.log(rect);
     let onBorderLeft = rect.start.x === 0;
     let onBorderTop = rect.start.y === 0;
     let onBorderRight = rect.start.x + rect.size.x === mass[0].length;
@@ -872,41 +702,7 @@ class Field {
     return true;
   }
 
-  doWithSubRectanglePrimitive(rectangle, startX, startY, sizeX, sizeY, doThat, calledByObject) {
-    let currentTileY = startY;
-    for (let row = 1; row <= sizeY; row++, currentTileY++) {
-      let currentTileX = startX;
-      for (let col = 1; col <= sizeX; col++, currentTileX++) {
-        doThat(rectangle, currentTileY, currentTileX, calledByObject);
-      }
-    }
-  }
-
-  isTunnelsContainsPosition(pos) {
-    for (let tun of this.tunnels) {
-      if (isStraightContainPosition(tun, pos)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  isPositionReachTunnels(pos) {
-    if (this.isTunnelsContainsPosition(pos)) {
-      return true;
-    }
-    for (let hall of this.halls) {
-      if (hall.connectedWithTunnels === true) {
-        if (isRectangleContainsPosition(hall, pos)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   generateRandomHalls(mass) {
-
     //init falses
     mass.map((row) => {
       row[row.length - 1].c = false;
@@ -917,12 +713,8 @@ class Field {
 
     let balanceHallCount = getRandomInt(this.minHallsCount, this.maxHallsCount);
     do {
-      console.log('HALL GENERATOR NEW HALL balance: ' + balanceHallCount);
-      console.log(mass.map((row) => row.map((tile) => tile.t)));
-
       //random start tile
       let tileStartNumber = getRandomInt(1, mass.flat().filter((tile) => tile.c === true).length);
-
       let tileStartThisHall = (() => {
         for (let row = 0; row < mass.length; row++) {
           for (let col = 0; col < mass[row].length; col++) {
@@ -934,7 +726,6 @@ class Field {
           }
         }
       })();
-
       //compute max sizes and randomize sizes
       let getMaxSizeOnDim = (d1, d2, isY) => {
         let tileD = d1 + 1;
@@ -952,34 +743,13 @@ class Field {
         }
         return this.maxHallsXY;
       };
-      console.log('tilestart');
-      console.log(tileStartThisHall);
-      //console.log('mass18(y=17)');
-      //console.log(mass);
       let maxSizeX = getMaxSizeOnDim(tileStartThisHall.x, tileStartThisHall.y, false);
       let maxSizeY = getMaxSizeOnDim(tileStartThisHall.y, tileStartThisHall.x, true);
-      console.log('maxsizes x, y');
-      console.log(maxSizeX + ', ' + maxSizeY);
       let sizeThisHall = {
         x: getRandomInt(this.minHallsXY, maxSizeX),
         y: getRandomInt(this.minHallsXY, maxSizeY),
       };
-
-      console.log('sizethishall');
-      console.log(sizeThisHall);
-
       //apply new hall to mass
-      console.log(123);
-
-      console.log('data and view after dowithsub:');
-      console.log(mass);
-      console.log(mass.map((row) => row.map((tile) => (tile.t === 1
-        ? 'W'
-        : 'e') + (tile.c
-        ? '+'
-        : 'O'))));
-      //console.log(tileStartThisHall);
-      //console.log(sizeThisHall);
       doWithSubRectangle(mass,
         tileStartThisHall.x, tileStartThisHall.y,
         sizeThisHall.x, sizeThisHall.y,
@@ -996,15 +766,6 @@ class Field {
         sizeThisHall.x + 2, sizeThisHall.y + 2,
         (x) => {x.c = false;},
       );
-      //console.log("after endhall raw data:");
-      //console.log(mass);
-      console.log('after endhall view, flatmaps includes true c: ' + mass.flat().map((tile) => tile.c).includes(true));
-      console.log(mass.map((row) => row.map((tile) => (tile.t === 1
-        ? 'W'
-        : 'e') + (tile.c
-        ? '+'
-        : 'O'))));
-
     } while (--balanceHallCount > 0 && mass.flat().map((tile) => tile.c).includes(true));
   }
 
@@ -1012,7 +773,8 @@ class Field {
     this.tunnels = Array();
 
   }
-    initHalls() {
+
+  initHalls() {
     this.halls = Array();
   }
 
@@ -1035,78 +797,202 @@ class Tile {
    * or (respectively)
    * string trail or wall
    * @param {{x: number, y: number}} position
+   * Must be if it is not init
    */
-  constructor(tileType, position= undefined) {
+  constructor(tileType, position = undefined) {
     if (typeof tileType == 'number') {
       if (tileType >= 0 && tileType <= 1) {
-          this.type = tileType;
+        this.type = tileType;
       } else {
-          throw 'Unexpected number to tileType';
+        throw 'Unexpected number to tileType';
       }
     } else {
-        this.type = {trail: 0, wall: 1}[tileType];
-        if (typeof this.type == 'undefined') {
-            throw 'Unexpected string to tileType';
-        }
+      this.type = {trail: 0, wall: 1}[tileType];
+      if (typeof this.type == 'undefined') {
+        throw 'Unexpected string to tileType';
+      }
     }
-      this.pos = position ;
+    this.pos = position;
   }
 }
 
 //#endregion
 
-//#region unnamed
+//#region Entities
+
+class Entity {
+  pos;
+
+  constructor(pos) {
+    this.pos = pos;
+  }
+}
+
+class PickupableItem extends Entity {
+  constructor(pos) {
+    super(pos);
+  }
+
+  pickUpByUnit(unit) {
+    if (this instanceof Potion) {
+      return this.potionPickUpByUnit(unit);
+    } else if (this instanceof SwordBuff) {
+      return this.swordBuffPickUpByUnit(unit);
+    }
+  }
+}
+
+class Potion extends PickupableItem {
+  constructor(pos) {
+    super(pos);
+  }
+
+  potionPickUpByUnit(e) {
+    if (this instanceof HealingPotion) {
+      return this.healingPotionPickUpByUnit(e);
+    }
+  }
+}
+
+class HealingPotion extends Potion {
+  healingHpCount;
+
+  constructor(pos, healingHpCount) {
+    super(pos);
+    this.healingHpCount = healingHpCount;
+
+  }
+
+  healingPotionPickUpByUnit(e) {//потенциально нужна проверка на тип е
+    e.getHeal(this.healingHpCount);
+    return true;
+  }
+}
+
+class SwordBuff extends PickupableItem {
+  damageBuff;
+
+  constructor(pos, damageBuff) {
+    super(pos);
+    this.damageBuff = damageBuff;
+
+  }
+
+  swordBuffPickUpByUnit(e) {//потенциально нужна проверка на тип е
+    e.dmg += this.damageBuff;
+    return true;
+  }
+}
+
+class Unit extends Entity {
+  maxHp;
+  #hp;
+
+  constructor(pos, maxHp) {
+    super(pos);
+    this.maxHp = maxHp;
+    this.hp = maxHp;
+
+  }
+
+  get hp() {
+    return this.#hp;
+  }
+
+  set hp(value) {
+    this.#hp = getNumberSettedToBorders(value, 0, this.maxHp);
+  }
+
+  getDamage(hpLoss) {
+    this.hp = this.hp - hpLoss;
+  }
+
+  getHeal(hpAdd) {
+    this.hp = this.hp + hpAdd;
+  }
+
+  getPercentOfHp() {
+    return (this.hp / this.maxHp) * 100;
+  }
+}
+
+class CombatUnit extends Unit {
+  dmg;
+
+  constructor(pos, maxHp, dmg) {
+    super(pos, maxHp);
+    this.dmg = dmg;
+  }
+}
+
+class Player extends CombatUnit {
+  constructor(pos, maxHp, dmg) {
+    super(pos, maxHp, dmg);
+
+  }
+}
+
+class AiEnemyUnit extends CombatUnit {
+  lastPlayerSeekedDirection;
+  lastMovedDirection;
+  wantMoveDirection;
+  aiType;
+  aiStage;
+
+  constructor(pos, maxHp, dmg) {
+    super(pos, maxHp, dmg);
+    this.lastPlayerSeekedDirection = '';
+    this.lastMovedDirection = '';
+    this.wantMoveDirection = getRandomDirection();
+    if (tryProckOfP(15)) {
+      this.aiType = 'researcher';
+    } else {
+      this.aiType = 'hunter';
+    }
+    this.aiStage = 1;
+  }
+
+  resetHaunt() {
+    this.aiStage = 1;
+    this.lastPlayerSeekedDirection = '';
+  }
+}
+
+class Enemy1 extends AiEnemyUnit {
+  constructor(pos, maxHp, dmg) {
+    super(pos, maxHp, dmg);
+
+  }
+}
 
 //#endregion
 
-//#region unnamed
-
-//#endregion
-
-//#region unnamed
-
-//#endregion
-
-//#region unnamed
-
-//#endregion
-
-//#region unnamed
-
-//#endregion
-
-//#region unnamed
-
-//#endregion
-
-//#region RectFunctions
+//#region GeometryFunctions
 
 /**
- * @param {{startX, startY, sizeX, sizeY}} params
+ * @param {{startX, startY, sizeX, sizeY}} rectangle
  * cut this
- * @param target
- * to borders
+ * @param {[][]} target
+ * to borders of that
  * */
-function cutRectangleToTargetRectangle(params, target) {
+function cutRectangleToTargetRectangle(rectangle, target) {
   let sizeOffsetX = 0, sizeOffsetY = 0, d;
-  if (params.startX < 0) {
-    params.sizeX += params.startX;
-    params.startX = 0;
+  if (rectangle.startX < 0) {
+    rectangle.sizeX += rectangle.startX;
+    rectangle.startX = 0;
   }
-  if (params.startY < 0) {
-    params.sizeY += params.startY;
-    params.startY = 0;
+  if (rectangle.startY < 0) {
+    rectangle.sizeY += rectangle.startY;
+    rectangle.startY = 0;
   }
-  d = (target[0].length - 1) - (params.startX + (params.sizeX - 1));
+  d = (target[0].length - 1) - (rectangle.startX + (rectangle.sizeX - 1));
   if (d < 0) {
-    params.sizeX += d;//target[0].length - params.startX;
+    rectangle.sizeX += d;
   }
-  d = (target.length - 1) - (params.startY + (params.sizeY - 1));
+  d = (target.length - 1) - (rectangle.startY + (rectangle.sizeY - 1));
   if (d < 0) {
-    params.sizeY += d;//target[0].length - params.startX;
+    rectangle.sizeY += d;
   }
-  //if (params.startY + params.sizeY - 1 >= target.length)
-  //  params.sizeY = target.length - params.startY;
 }
 
 /**
@@ -1131,10 +1017,11 @@ function forceDoWithSubRectangle(rectangle, startX, startY, sizeX, sizeY, doThat
   doWithSubRectangle(rectangle, cutedParams.startX, cutedParams.startY, cutedParams.sizeX, cutedParams.sizeY, doThat);
 }
 
+//todo fix doWithRect funcs sub- args of from spreaded to object
 /**
  * Do with elements of specified places on Rectangle
- * @param rectangle
- * Main rectangle array[][]
+ * @param {[][]} rectangle
+ * Main rectangle two dim array[][], contains elements to do
  * @param startX
  * of subrectangle
  * @param startY
@@ -1145,14 +1032,19 @@ function forceDoWithSubRectangle(rectangle, startX, startY, sizeX, sizeY, doThat
  * of subrectangle
  * @param doThat
  * something to do
+ * @param calledByObject
+ * if doing to object
  */
-
-function doWithSubRectanglePrimitive(rectangle, startX, startY, sizeX, sizeY, doThat) {
+function doWithSubRectanglePrimitive(rectangle, startX, startY, sizeX, sizeY, doThat, calledByObject = undefined) {
   let currentTileY = startY;
   for (let row = 1; row <= sizeY; row++, currentTileY++) {
     let currentTileX = startX;
     for (let col = 1; col <= sizeX; col++, currentTileX++) {
-      doThat(rectangle, currentTileY, currentTileX);
+      if (calledByObject === undefined) {
+        doThat(rectangle, currentTileY, currentTileX);
+      } else {
+        doThat(rectangle, currentTileY, currentTileX, calledByObject);
+      }
     }
   }
 }
@@ -1182,22 +1074,15 @@ function isStraightContainPosition(straight, pos) {
 }
 
 /**
- *
  * @param {{start:{x,y},size:{x,y}}} rectangle
  * @param {{x,y}} pos
  * @returns {boolean}
  */
 function isRectangleContainsPosition(rectangle, pos) {
-  if (
-    pos.x >= rectangle.start.x &&
+  return pos.x >= rectangle.start.x &&
     pos.x <= endOfRectangle(rectangle, false) &&
     pos.y >= rectangle.start.y &&
-    pos.y <= endOfRectangle(rectangle, true)
-  ) {
-    return true;
-  } else {
-    return false;
-  }
+    pos.y <= endOfRectangle(rectangle, true);
 }
 
 function endOfRectangle(rect, isY) {
@@ -1206,83 +1091,116 @@ function endOfRectangle(rect, isY) {
     : rect.start.x + rect.size.x) - 1);
 }
 
-function movePositionOnDirection(pos, dir){
-  if (dir === 'u')
+function movePositionOnDirection(pos, dir) {
+  if (dir === 'u') {
     pos.y++;
-  if (dir === 'd')
+  }
+  if (dir === 'd') {
     pos.y--;
-  if (dir === 'l')
+  }
+  if (dir === 'l') {
     pos.x--;
-  if (dir === 'r')
+  }
+  if (dir === 'r') {
     pos.x++;
+  }
   return pos;
 }
 
-function getClonePosition(pos){
-  return {x:pos.x,y:pos.y};
+function getClonePosition(pos) {
+  return {x: pos.x, y: pos.y};
 }
 
-function isPositionEquals(pos1, pos2){
+function isPositionEquals(pos1, pos2) {
   return pos1.x === pos2.x && pos1.y === pos2.y;
 }
 
 /**
- *
  * @param {any} min
  * Min int
  * @param {any} max
  * Max int
  */
 function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function getTurnLeftDirection(dir){
-  if(dir === 'r')
+function getTurnLeftDirection(dir) {
+  if (dir === 'r') {
     return 'u';
-  if(dir === 'u')
+  }
+  if (dir === 'u') {
     return 'l';
-  if(dir === 'd')
+  }
+  if (dir === 'd') {
     return 'r';
-  if(dir === 'l')
+  }
+  if (dir === 'l') {
     return 'd';
+  }
 }
-function getInverseDirection(dir){
-  if(dir === 'r')
+
+function getInverseDirection(dir) {
+  if (dir === 'r') {
     return 'l';
-  if(dir === 'u')
+  }
+  if (dir === 'u') {
     return 'd';
-  if(dir === 'd')
+  }
+  if (dir === 'd') {
     return 'u';
-  if(dir === 'l')
+  }
+  if (dir === 'l') {
     return 'r';
+  }
 }
-function getTurnRightDirection(dir){
-  if(dir === 'r')
+
+function getTurnRightDirection(dir) {
+  if (dir === 'r') {
     return 'd';
-  if(dir === 'u')
+  }
+  if (dir === 'u') {
     return 'r';
-  if(dir === 'd')
+  }
+  if (dir === 'd') {
     return 'l';
-  if(dir === 'l')
+  }
+  if (dir === 'l') {
     return 'u';
+  }
 }
-function getAnotherRandomDirection(dirs){
-  let tmp = ['u','d','l','r'].filter(d=>!dirs.map(x=>x===d).includes(true));
-  let r = getRandomInt(0, tmp.length-1);
+
+function getAnotherRandomDirection(dirs) {
+  let tmp = ['u', 'd', 'l', 'r'].filter(d => !dirs.map(x => x === d).includes(true));
+  let r = getRandomInt(0, tmp.length - 1);
   return tmp[r];
 }
-function getRandomDirection(){
-  let r = getRandomInt(0,3);
+
+function getRandomDirection() {
+  let r = getRandomInt(0, 3);
   //return ['u','d','l','r'][r];
-  if(r === 0)
+  if (r === 0) {
     return 'u';
-  if(r === 1)
+  }
+  if (r === 1) {
     return 'd';
-  if(r === 2)
+  }
+  if (r === 2) {
     return 'l';
-  if(r === 3)
+  }
+  if (r === 3) {
     return 'r';
+  }
+}
+
+function getNumberSettedToBorders(number, min, max) {
+  if (number < min) {
+    return min;
+  } else if (number > max) {
+    return max;
+  } else {
+    return number;
+  }
 }
 
 /**
@@ -1291,87 +1209,11 @@ function getRandomDirection(){
  */
 function tryProckOfP(percent) {
   return getRandomInt(1, 100) <= percent;
-
 }
-//#endregion
-
-//#region Tests
-
-function testcutRectangleToTargetRectangle() {
-  let i = 1;
-  let cutedParams = {startX: -5, startY: -8, sizeX: 27, sizeY: 82};
-  let mass = Array(10).fill().map(x => x = Array(20).fill().map(y => y = i++));
-  console.log(cutedParams);
-  cutRectangleToTargetRectangle(cutedParams, mass);
-  console.log(cutedParams);
-  console.log(mass);
-}
-
-function setNumberToBorders(number, min, max){
-  if (number < min)
-    return min;
-  else if (number > max)
-    return max;
-  else
-    return number;
-
-}
-
 
 //#endregion
 
-/*
-let checkWall = (mass, wall, startD, endD, isY)=>{
-    let currentX, currentY;
-    Field.qwer++;
-    for (let tileD = startD; tileD <= endD; tileD++) {
-        //console.log(mass);
-        if (isY){
-            currentY = tileD;
-            currentX = wall;
-        }
-        else {
-            currentY = wall;
-            currentX = tileD;
-        }
 
-        if (mass[currentY][currentX] !== 1) {
-            if (this.isPositionReachTunnels({x:currentX, y:currentY}))
-                return false;
-        }
-        if (isY)
-            mass[tileD][wall] =  Field.qwer;
-        else
-            mass[wall][tileD] =  Field.qwer;
-    }
-    return true;
-}
 
-    static qwer = 0;
 
-isHallUnreachableFromTunnels(mass, hall){
-        console.log('IS HALL UNREACHABLE');
-        console.log(hall);
-        let onBorderLeft = hall.start.x === 0;
-        let onBorderTop = hall.start.y === 0;
-        let onBorderRight = hall.start.x + hall.size.x === mass[0].length;
-        let onBorderBot = hall.start.y + hall.size.y === mass.length;
-        let endX = endOfRectangle(hall, false);
-        if (!onBorderLeft){
-            if (checkWall(mass,hall.start.x - 1, hall.start.y, endOfRectangle(hall, true),true) === false)
-                return false;
-        }
-        if (!onBorderRight){
-            if (checkWall(mass,hall.start.x + hall.size.x, hall.start.y, endOfRectangle(hall, true),true) === false)
-                return false;
-        }
-        if (!onBorderTop){
-            if (checkWall(mass,hall.start.y - 1, hall.start.x, endOfRectangle(hall, false),false) === false)
-                return false;
-        }
-        if (!onBorderBot){
-            if (checkWall(mass,hall.start.y + hall.size.y, hall.start.x, endOfRectangle(hall, false),false) === false)
-                return false;
-        }
-    }
- */
+
