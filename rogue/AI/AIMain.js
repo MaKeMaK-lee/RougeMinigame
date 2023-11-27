@@ -6,7 +6,7 @@ function aiTurn(calledByObject)
 {
   let calledByGame = calledByObject;
 
-  let aiEnemies = calledByGame.state.entities.filter(e => e instanceof Enemy1);
+  let aiEnemies = calledByGame.state.entities.filter(e => e instanceof AiEnemyUnit);
   for (let aE of aiEnemies) {
     aiEnemyTurn(aE);
   }
@@ -130,8 +130,8 @@ function aiTurn(calledByObject)
   function aiTryFindAndAttackNearbyPlayer(ai, attackRange)
   {
     let area = getRectangleFromCenterAndRadiusSafeToArgs(ai.pos, attackRange);
-    if (isRectangleContainsPosition(area, calledByGame.player.pos)) {
-      calledByGame.attack(ai, calledByGame.player);
+    if (isRectangleContainsPosition(area, calledByGame.state.player.pos)) {
+      calledByGame.attack(ai, calledByGame.state.player);
       return true;
     }
     return false;
@@ -153,7 +153,7 @@ function aiTurn(calledByObject)
     do {
       movePositionOnDirection(pointToSeek, dir);
       if (calledByGame.isTileExistsAndAvailableToLook(pointToSeek)) {
-        if (isPositionEquals(pointToSeek, calledByGame.player.pos)) {
+        if (isPositionEquals(pointToSeek, calledByGame.state.player.pos)) {
           return true;
         }
       } else {

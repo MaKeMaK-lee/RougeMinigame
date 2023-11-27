@@ -1,4 +1,3 @@
-
 //возможно лучше хранить координаты клеток и не пересчитывать их каждый раз
 /**
  * @param {GameState} gameState
@@ -17,26 +16,24 @@ function render(gameState) {
       case ('HealingPotion'):
         tileClass = 'tileHP';
         break;
-      case ('Enemy1'):
+      case ('AiEnemyUnit'):
         tileClass = 'tileE';
         break;
       case ('SwordBuff'):
         tileClass = 'tileSW';
         break;
-      case ('Player'):
+      case ('Unit'):
         tileClass = 'tileP';
         break;
     }
 
     let element = jQuery('<div/>', {
-      class: 'tile' + ' ' + tileClass,
-      style: 'left: ' + x + 'px; top:' + y + 'px;',
+      class: 'tile' + ' ' + tileClass, style: 'left: ' + x + 'px; top:' + y + 'px;',
     });
 
     if (e instanceof Unit) {
       let hpBar = jQuery('<div/>', {
-        class: 'health',
-        style: 'width:' + e.getPercentOfHp() + '%;',
+        class: 'health', style: 'width:' + e.getPercentOfHp() + '%;',
       });
       hpBar.appendTo(element);
     }
@@ -61,13 +58,10 @@ function render(gameState) {
       currentX = 0;
       for (let columnIndex = 0; columnIndex < tiles[rowIndex].length; columnIndex++) {
         let tileClass = tiles[rowIndex][columnIndex].type === 0
-          ?
-          'tile-'
-          :
-          'tileW';
+          ? 'tile-'
+          : 'tileW';
         jQuery('<div/>', {
-          class: 'tile' + ' ' + tileClass,
-          style: 'left: ' + currentX + 'px; top:' + currentY + 'px;',
+          class: 'tile' + ' ' + tileClass, style: 'left: ' + currentX + 'px; top:' + currentY + 'px;',
         }).appendTo('#field');
         currentX += 32;
       }

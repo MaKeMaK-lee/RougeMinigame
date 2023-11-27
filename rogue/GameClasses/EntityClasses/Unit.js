@@ -2,11 +2,13 @@
 class Unit extends Entity {
   maxHp;
   #hp;
+  dmg;
 
-  constructor(pos, maxHp) {
+  constructor(pos, maxHp, dmg) {
     super(pos);
     this.maxHp = maxHp;
     this.hp = maxHp;
+    this.dmg = dmg;
 
   }
 

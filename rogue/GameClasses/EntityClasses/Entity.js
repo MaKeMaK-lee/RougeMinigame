@@ -1,8 +1,10 @@
 
 class Entity {
   pos;
+  field;
 
-  constructor(pos) {
+  constructor(pos, field) {
     this.pos = pos;
+    this.field = field;
   }
 }

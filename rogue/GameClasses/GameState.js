@@ -1,6 +1,7 @@
 class GameState {
   field;
   entities;//TODO Неплохо бы добавить отдельные списки (при этом не удаляя элементы из этого)
+  player;
 
   //without params for new GameStage
   constructor() {
@@ -11,21 +12,21 @@ class GameState {
   removeFromEntities(e) {
     this.entities.splice(this.entities.findIndex(a => a === e), 1);
     if (e instanceof Unit) {
-      if (this.entities.filter(e => e instanceof Enemy1).length === 0) {
+      if (this.entities.filter(e => e instanceof AiEnemyUnit).length === 0) {
         alert(
           '   !!!___VICTORY!___!!!\n' +
           'Your stats:\n' +
-          'HP: ' + game.player.hp + ' / ' + game.player.maxHp + '\n' +
-          'DMG: ' + game.player.dmg + '\n' +
+          'HP: ' + this.player.hp + ' / ' + this.player.maxHp + '\n' +
+          'DMG: ' + this.player.dmg + '\n' +
           '\n' +
           '   Thanks for playing!');
       }
-      if (e instanceof Player) {
+      if (e === this.player) {
         alert(
           '   -GAME OVER-\n' +
           'Your stats:\n' +
-          'HP: ' + game.player.hp + ' / ' + game.player.maxHp + '\n' +
-          'DMG: ' + game.player.dmg + '\n' +
+          'HP: ' + this.player.hp + ' / ' + this.player.maxHp + '\n' +
+          'DMG: ' + this.player.dmg + '\n' +
           '\n' +
           'You has been defeat, but dont despair! Just try again!');
       }

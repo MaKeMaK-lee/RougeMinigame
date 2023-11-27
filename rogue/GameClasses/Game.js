@@ -1,6 +1,5 @@
 class Game {
   state;
-  player;
 
   //Settings - вынес бы я это, но пока смысла не вижу
   playerMaxHp = 100;
@@ -57,27 +56,27 @@ class Game {
   doTurn(action) {
     switch (action) {
       case 'PressW':
-        if (!this.tryMove('u', this.player)) {
+        if (!this.tryMove('u', this.state.player)) {
           return;
         }
         break;
       case 'PressS':
-        if (!this.tryMove('d', this.player)) {
+        if (!this.tryMove('d', this.state.player)) {
           return;
         }
         break;
       case 'PressA':
-        if (!this.tryMove('l', this.player)) {
+        if (!this.tryMove('l', this.state.player)) {
           return;
         }
         break;
       case 'PressD':
-        if (!this.tryMove('r', this.player)) {
+        if (!this.tryMove('r', this.state.player)) {
           return;
         }
         break;
       case 'PressSpace':
-        this.areaAttack(this.player, this.player.pos, 1);
+        this.areaAttack(this.state.player, this.state.player.pos, 1);
         break;
       default:
         return;
@@ -116,7 +115,7 @@ class Game {
       entity.pos.x = newPos.x;
       entity.pos.y = newPos.y;
 
-      if (entity instanceof Player)//вообще тут должна быть функция проверки может ли ent поднять предмет
+      if (entity === this.state.player)//вообще тут должна быть функция проверки может ли ent поднять предмет
       {
         this.applyEffectsOnTileAfterMove(entity);
       }
@@ -158,7 +157,7 @@ class Game {
   generateRandomStartEntities() {
     let emptyTiles = this.state.field.tiles.flat().filter(tile => tile.type === 0 && !this.state.isTileContainEntity(tile)).map(tile => tile.pos);
 
-    this.player = this.spawnOnEmptyTiles(Player, this.state.entities, emptyTiles, this.spawnEntity,
+    this.state.player = this.spawnOnEmptyTiles(Unit, this.state.entities, emptyTiles, this.spawnEntity,
       [getRandomInt(this.playerMaxHp, this.playerMaxHp),getRandomInt(this.playerBaseDmg,this.playerBaseDmg)]
     );
     this.spawnManyOnEmptyTiles(SwordBuff,this.state.entities, emptyTiles, this.countSwordsBuffMax, this.spawnEntity,
@@ -167,7 +166,7 @@ class Game {
     this.spawnManyOnEmptyTiles(HealingPotion,this.state.entities, emptyTiles, this.countHealingPotionMax, this.spawnEntity,
       [getRandomInt(this.potionMinHealingHpCount, this.potionMaxHealingHpCount)]
     );
-    this.spawnManyOnEmptyTiles(Enemy1,this.state.entities, emptyTiles, this.countEnemy1Max, this.spawnEntity,
+    this.spawnManyOnEmptyTiles(AiEnemyUnit,this.state.entities, emptyTiles, this.countEnemy1Max, this.spawnEntity,
       [getRandomInt(this.enemyMaxHp, this.enemyMaxHp),getRandomInt(this.enemyBaseDmg,this.enemyBaseDmg)]
     );
   }

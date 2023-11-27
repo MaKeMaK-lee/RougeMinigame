@@ -1,5 +1,5 @@
 
-class HealingPotion extends Potion {
+class HealingPotion extends PickupableItem {
   healingHpCount;
 
   constructor(pos, healingHpCount) {

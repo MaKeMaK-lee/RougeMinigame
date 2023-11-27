@@ -1,5 +1,5 @@
 
-class AiEnemyUnit extends CombatUnit {
+class AiEnemyUnit extends Unit {
   lastPlayerSeekedDirection;
   lastMovedDirection;
   wantMoveDirection;
