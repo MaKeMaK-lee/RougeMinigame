@@ -56,27 +56,27 @@ class Game {
   doTurn(action) {
     switch (action) {
       case 'PressW':
-        if (!this.tryMove('u', this.state.player)) {
+        if (!this.state.player.tryMove('u' )) {
           return;
         }
         break;
       case 'PressS':
-        if (!this.tryMove('d', this.state.player)) {
+        if (!this.state.player.tryMove('d' )) {
           return;
         }
         break;
       case 'PressA':
-        if (!this.tryMove('l', this.state.player)) {
+        if (!this.state.player.tryMove('l' )) {
           return;
         }
         break;
       case 'PressD':
-        if (!this.tryMove('r', this.state.player)) {
+        if (!this.state.player.tryMove('r' )) {
           return;
         }
         break;
       case 'PressSpace':
-        this.areaAttack(this.state.player, this.state.player.pos, 1);
+        this.state.player.areaAttack(this.state.player.pos, 1);
         break;
       default:
         return;
@@ -85,73 +85,6 @@ class Game {
     aiTurn(this);
 
     render(this.state);
-  }
-
-  attack(attacker, target) {
-    this.damageEntity(target, attacker.dmg);
-  }
-
-  damageEntity(target, value) {
-    target.getDamage(value);
-    if (target.hp === 0) {
-      this.state.removeFromEntities(target);
-    }
-  }
-
-  areaAttack(attacker, center, radius) {
-    let area = getRectangleFromCenterAndRadiusSafeToArgs(center, radius);
-    for (let target of this.state.entities.filter(e => e instanceof Unit && e !== attacker)) {
-      if (isRectangleContainsPosition(area, target.pos)) {
-        this.attack(attacker, target);
-      }
-    }
-    return true;
-  }
-
-  tryMove(direction, entity) {
-    let newPos = {x: entity.pos.x, y: entity.pos.y};
-    movePositionOnDirection(newPos, direction);
-    if (this.isTileExistsAndAvailableToMove(newPos)) {
-      entity.pos.x = newPos.x;
-      entity.pos.y = newPos.y;
-
-      if (entity === this.state.player)//вообще тут должна быть функция проверки может ли ent поднять предмет
-      {
-        this.applyEffectsOnTileAfterMove(entity);
-      }
-      if (entity instanceof AiEnemyUnit) {
-        entity.lastMovedDirection = direction;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  applyEffectsOnTileAfterMove(entity) {
-    let effectEntities = this.state.entities.filter(e => isPositionEquals(e.pos, entity.pos) && e instanceof PickupableItem);
-    for (let eE of effectEntities) {
-      if (eE.pickUpByUnit(entity)) {
-        this.state.removeFromEntities(eE);
-      }
-    }
-  }
-
-  isTileExistsAndAvailableToMove(pos) {
-    if (this.isTileExistsAndAvailableToLook(pos)) {
-        if (this.state.entities.filter(e => e instanceof Unit).filter(e => isPositionEquals(e.pos, pos)).length === 0) {
-          return true;
-        }
-    }
-    return false;
-  }
-
-  isTileExistsAndAvailableToLook(pos) {
-    if (this.state.field.isFieldContainsPosition(pos)) {
-      if (this.state.field.tiles[pos.y][pos.x].type === 0) {
-        return true;
-      }
-    }
-    return false;
   }
 
   generateRandomStartEntities() {
@@ -192,13 +125,13 @@ class Game {
     }
       let randomNumberOfEmptyTile = getRandomInt(1, emptyTiles.length);
       let newRandomEmptyPosition = emptyTiles[randomNumberOfEmptyTile - 1];
-      let e = spawnFunction(eType,eCollection, newRandomEmptyPosition, spawnFunctionArgsExcludingPositionAndType);
+      let e = spawnFunction(eType,eCollection, newRandomEmptyPosition, this.state, spawnFunctionArgsExcludingPositionAndType);
       emptyTiles.splice(randomNumberOfEmptyTile - 1, 1);
       return e;
   }
 
-  spawnEntity(entityType,eCollection, pos, spawnArgs) {
-    let entity = new entityType.prototype.constructor({x: pos.x, y: pos.y}, ...spawnArgs);
+  spawnEntity(entityType,eCollection, pos, state, spawnArgs) {
+    let entity = new entityType.prototype.constructor({x: pos.x, y: pos.y}, state, ...spawnArgs);
     eCollection.push(entity);
     return entity;
   }

@@ -26,4 +26,8 @@ class Tile {
     }
     this.pos = position;
   }
+
+  isWall(){
+    return this.type === 1;
+  }
 }

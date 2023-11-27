@@ -2,8 +2,8 @@
 class SwordBuff extends PickupableItem {
   damageBuff;
 
-  constructor(pos, damageBuff) {
-    super(pos);
+  constructor(pos, state, damageBuff) {
+    super(pos, state);
     this.damageBuff = damageBuff;
 
   }

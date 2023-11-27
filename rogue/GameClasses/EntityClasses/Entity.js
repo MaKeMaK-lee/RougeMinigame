@@ -1,10 +1,10 @@
 
 class Entity {
   pos;
-  field;
+  state;
 
-  constructor(pos, field) {
+  constructor(pos, state) {
     this.pos = pos;
-    this.field = field;
+    this.state = state;
   }
 }

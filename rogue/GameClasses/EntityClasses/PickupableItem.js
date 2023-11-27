@@ -1,7 +1,7 @@
 
 class PickupableItem extends Entity {
-  constructor(pos) {
-    super(pos);
+  constructor(pos, state) {
+    super(pos, state);
   }
 
   pickUpByUnit(unit) {

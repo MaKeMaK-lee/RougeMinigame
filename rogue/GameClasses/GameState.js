@@ -33,6 +33,24 @@ class GameState {
     }
   }
 
+  isTileExistsAndAvailableToMove(pos) {
+    if (this.isTileExistsAndAvailableToLook(pos)) {
+      if (this.entities.filter(e => e instanceof Unit).filter(e => isPositionEquals(e.pos, pos)).length === 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  isTileExistsAndAvailableToLook(pos) {
+    if (this.field.isFieldContainsPosition(pos)) {
+      if (!this.field.tiles[pos.y][pos.x].isWall()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   isTileContainEntity(tile) {
     for (let entity of this.entities) {
       if (isPositionEquals(tile.pos, entity.pos)) {

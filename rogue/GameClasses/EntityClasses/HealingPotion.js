@@ -2,8 +2,8 @@
 class HealingPotion extends PickupableItem {
   healingHpCount;
 
-  constructor(pos, healingHpCount) {
-    super(pos);
+  constructor(pos, state, healingHpCount) {
+    super(pos, state);
     this.healingHpCount = healingHpCount;
 
   }
